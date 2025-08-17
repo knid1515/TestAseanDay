@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมวันอาเซียนเดย์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap');
+        body { font-family: 'Kanit', sans-serif; }
+        .flag-emoji {
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
+            font-size: 8rem;
+            line-height: 1;
+        }
+        .flag-animation {
+            animation: wave 2s ease-in-out infinite;
+        }
+        @keyframes wave {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        .correct-answer {
+            animation: bounce 0.6s ease-in-out;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
+                🌏 เกมวันอาเซียนเดย์ 🎉
+            </h1>
+            <p class="text-xl text-white/90 mb-6">ทดสอบความรู้เกี่ยวกับประเทศสมาชิกอาเซียน!</p>
+            
+            <!-- Navigation Buttons -->
+            <div class="flex justify-center space-x-4 mb-6">
+                <button id="gameTabBtn" class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-3 px-3 rounded-xl transition-all duration-200 border-2 border-white/50 text-2xl" title="เล่นเกม">
+                    🎮
+                </button>
+                <button id="leaderboardTabBtn" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-semibold py-3 px-3 rounded-xl transition-all duration-200 border-2 border-white/30 text-2xl" title="ดูอันดับคะแนน">
+                    🏆
+                </button>
+            </div>
+
+            <div id="gameStats" class="bg-white/20 backdrop-blur-sm rounded-xl p-4 inline-block">
+                <div class="flex items-center justify-center space-x-4 text-white">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold" id="score">0</div>
+                        <div class="text-sm">คะแนน</div>
+                    </div>
+                    <div class="w-px h-8 bg-white/30"></div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold" id="questionNumber">1</div>
+                        <div class="text-sm">ข้อที่</div>
+                    </div>
+                    <div class="w-px h-8 bg-white/30"></div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold">10</div>
+                        <div class="text-sm">ข้อทั้งหมด</div>
+                    </div>
+                    <div class="w-px h-8 bg-white/30"></div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold" id="timer">00:00</div>
+                        <div class="text-sm">เวลา</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Container -->
+        <div class="max-w-4xl mx-auto">
+            <!-- Leaderboard Card -->
+            <div id="leaderboardCard" class="bg-white rounded-2xl shadow-2xl p-8 mb-6 hidden">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">🏆 อันดับคะแนนสูงสุด</h2>
+                    <p class="text-gray-600">10 อันดับแรกจากคะแนนและเวลาที่ใช้</p>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                                <th class="py-3 px-4 rounded-tl-xl text-center">อันดับ</th>
+                                <th class="py-3 px-4 text-left">ชื่อผู้เล่น</th>
+                                <th class="py-3 px-4 text-center">คะแนน</th>
+                                <th class="py-3 px-4 text-center">เวลา</th>
+                                <th class="py-3 px-4 rounded-tr-xl text-center">วันที่</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody">
+                            <!-- Leaderboard entries will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="text-center mt-6">
+                    <button id="clearLeaderboardBtn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-3 rounded-xl transition-all duration-200 text-2xl" title="ล้างอันดับคะแนน">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div id="gameCard" class="bg-white rounded-2xl shadow-2xl p-8 mb-6">
+                <div class="text-center mb-8">
+                    <div id="flagContainer" class="mb-6">
+                        <div id="flagDisplay" class="flag-animation inline-block w-48 h-32 mx-auto"></div>
+                    </div>
+                    <h2 id="questionText" class="text-2xl md:text-3xl font-semibold text-gray-800 mb-6"></h2>
+                </div>
+
+                <!-- Answer Options -->
+                <div id="answersContainer" class="grid grid-cols-2 gap-4 mb-6">
+                    <!-- Options will be inserted here -->
+                </div>
+
+                <!-- Next Button -->
+                <div class="text-center">
+                    <button id="nextButton" class="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 px-3 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-2xl" title="ข้อถัดไป" disabled>
+                        →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Card (Hidden initially) -->
+            <div id="resultsCard" class="bg-white rounded-2xl shadow-2xl p-8 text-center hidden">
+                <div class="mb-6">
+                    <div class="text-6xl mb-4">🏆</div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">เกมจบแล้ว!</h2>
+                    <div class="text-5xl font-bold text-blue-600 mb-2" id="finalScore">0</div>
+                    <div class="text-xl text-gray-600 mb-2">คะแนนรวม</div>
+                    <div class="text-lg text-gray-500 mb-4">เวลาที่ใช้: <span id="finalTime">00:00</span></div>
+                    <div id="resultMessage" class="text-lg text-gray-700 mb-6"></div>
+                    
+                    <!-- Name Input for Leaderboard -->
+                    <div id="nameInputSection" class="mb-6">
+                        <p class="text-gray-600 mb-3">บันทึกคะแนนลงอันดับ:</p>
+                        <div class="flex justify-center items-center space-x-3">
+                            <input type="text" id="playerNameInput" placeholder="กรอกชื่อของคุณ" maxlength="20" class="border-2 border-gray-300 rounded-lg px-4 py-2 text-center focus:border-blue-500 focus:outline-none">
+                            <button id="saveScoreBtn" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-xl" title="บันทึกคะแนน">
+                                💾
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-x-4">
+                    <button id="playAgainButton" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 px-3 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 text-2xl" title="เล่นอีกครั้ง">
+                        🎮
+                    </button>
+                    <button id="viewLeaderboardBtn" class="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold py-3 px-3 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 text-2xl" title="ดูอันดับคะแนน">
+                        🏆
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white/10 backdrop-blur-sm border-t border-white/20 mt-12">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center">
+                <p class="text-white/90 text-lg font-medium mb-2">
+                    🎮 เกมวันอาเซียนเดย์
+                </p>
+                <p class="text-white/70 text-sm">
+                    สร้างโดย <span class="font-semibold text-white">Kritch Thatsanasorn</span>
+                </p>
+                <div class="flex justify-center items-center mt-3 space-x-2">
+                    <div class="w-2 h-2 bg-white/50 rounded-full"></div>
+                    <p class="text-white/60 text-xs">
+                        © 2024 • ทดสอบความรู้เกี่ยวกับประเทศสมาชิกอาเซียน
+                    </p>
+                    <div class="w-2 h-2 bg-white/50 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const flagSVGs = {
+            "TH": `<svg width="200" height="133" viewBox="0 0 200 133" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="133" fill="#ED1C24"/>
+                <rect y="22" width="200" height="22" fill="#FFFFFF"/>
+                <rect y="44" width="200" height="44" fill="#241D4F"/>
+                <rect y="88" width="200" height="22" fill="#FFFFFF"/>
+            </svg>`,
+            "SG": `<svg width="200" height="133" viewBox="0 0 200 133" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="66.5" fill="#ED2939"/>
+                <rect y="66.5" width="200" height="66.5" fill="#FFFFFF"/>
+                <circle cx="50" cy="33" r="15" fill="#FFFFFF"/>
+                <circle cx="55" cy="33" r="12" fill="#ED2939"/>
+                <g fill="#FFFFFF" transform="translate(70,20)">
+                    <polygon points="0,0 3,9 12,9 5,14 8,23 0,18 -8,23 -5,14 -12,9 -3,9"/>
+                    <polygon points="20,5 23,14 32,14 25,19 28,28 20,23 12,28 15,19 8,14 17,14"/>
+                    <polygon points="10,25 13,34 22,34 15,39 18,48 10,43 2,48 5,39 -2,34 7,34"/>
+                    <polygon points="30,30 33,39 42,39 35,44 38,53 30,48 22,53 25,44 18,39 27,39"/>
+                    <polygon points="40,10 43,19 52,19 45,24 48,33 40,28 32,33 35,24 28,19 37,19"/>
+                </g>
+            </svg>`,
+            "MY": `<svg width="200" height="100" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+                <g>
+                    <rect width="200" height="100" fill="#CC0001"/>
+                    <rect y="0" width="200" height="7.14" fill="#CC0001"/>
+                    <rect y="14.28" width="200" height="7.14" fill="#FFFFFF"/>
+                    <rect y="28.56" width="200" height="7.14" fill="#CC0001"/>
+                    <rect y="42.84" width="200" height="7.14" fill="#FFFFFF"/>
+                    <rect y="57.12" width="200" height="7.14" fill="#CC0001"/>
+                    <rect y="71.4" width="200" height="7.14" fill="#FFFFFF"/>
+                    <rect y="85.68" width="200" height="7.14" fill="#CC0001"/>
+                    <rect x="0" y="0" width="100" height="50" fill="#010066"/>
+                    <circle cx="25" cy="18" r="8" fill="#FFCC00"/>
+                    <circle cx="29" cy="18" r="6" fill="#010066"/>
+                    <polygon points="45,10 47,16 53,16 48,20 50,26 45,22 40,26 42,20 37,16 43,16" fill="#FFCC00"/>
+                </g>
+            </svg>`,
+            "ID": `<svg width="200" height="133" viewBox="0 0 200 133" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="66.5" fill="#FF0000"/>
+                <rect y="66.5" width="200" height="66.5" fill="#FFFFFF"/>
+            </svg>`,
+            "PH": `<svg width="200" height="100" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="50" fill="#0038A8"/>
+                <rect y="50" width="200" height="50" fill="#CE1126"/>
+                <polygon points="0,0 100,50 0,100" fill="#FFFFFF"/>
+                <circle cx="33" cy="25" r="8" fill="#FFCD00"/>
+                <polygon points="33,17 35,23 41,23 36,27 38,33 33,29 28,33 30,27 25,23 31,23" fill="#0038A8"/>
+                <polygon points="15,15 17,21 23,21 18,25 20,31 15,27 10,31 12,25 7,21 13,21" fill="#FFCD00"/>
+                <polygon points="51,15 53,21 59,21 54,25 56,31 51,27 46,31 48,25 43,21 49,21" fill="#FFCD00"/>
+                <polygon points="15,75 17,81 23,81 18,85 20,91 15,87 10,91 12,85 7,81 13,81" fill="#FFCD00"/>
+            </svg>`,
+            "VN": `<svg width="200" height="133" viewBox="0 0 200 133" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="133" fill="#DA020E"/>
+                <polygon points="100,33 108,58 133,58 113,73 121,98 100,83 79,98 87,73 67,58 92,58" fill="#FFFF00"/>
+            </svg>`,
+            "LA": `<svg width="200" height="133" viewBox="0 0 200 133" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="133" fill="#CE1126"/>
+                <rect y="44" width="200" height="44" fill="#002868"/>
+                <circle cx="100" cy="66.5" r="20" fill="#FFFFFF"/>
+            </svg>`,
+            "KH": `<svg width="200" height="133" viewBox="0 0 200 133" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="44" fill="#032EA1"/>
+                <rect y="44" width="200" height="44" fill="#E4002B"/>
+                <rect y="88" width="200" height="44" fill="#032EA1"/>
+                <g transform="translate(100,66.5)" fill="#FFFFFF">
+                    <rect x="-30" y="-15" width="60" height="30" fill="#FFFFFF"/>
+                    <rect x="-25" y="-10" width="10" height="20" fill="#032EA1"/>
+                    <rect x="-5" y="-10" width="10" height="20" fill="#032EA1"/>
+                    <rect x="15" y="-10" width="10" height="20" fill="#032EA1"/>
+                </g>
+            </svg>`,
+            "MM": `<svg width="200" height="133" viewBox="0 0 200 133" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="44" fill="#FFCD00"/>
+                <rect y="44" width="200" height="44" fill="#34B233"/>
+                <rect y="88" width="200" height="44" fill="#EA2839"/>
+                <polygon points="100,33 108,58 133,58 113,73 121,98 100,83 79,98 87,73 67,58 92,58" fill="#FFFFFF"/>
+            </svg>`,
+            "BN": `<svg width="200" height="100" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="100" fill="#FFFF00"/>
+                <rect y="25" width="200" height="50" fill="#000000"/>
+                <rect y="37.5" width="200" height="25" fill="#FFFFFF"/>
+                <g transform="translate(100,50)" fill="#FF0000">
+                    <circle r="15" fill="none" stroke="#FF0000" stroke-width="2"/>
+                    <rect x="-20" y="-5" width="40" height="10"/>
+                </g>
+            </svg>`
+        };
+
+        const questions = [
+            {
+                flag: "TH",
+                question: "ธงชาตินี้เป็นของประเทศใด?",
+                options: ["ไทย", "มาเลเซีย", "อินโดนีเซีย", "ฟิลิปปินส์"],
+                correct: 0
+            },
+            {
+                flag: "SG",
+                question: "ธงชาตินี้เป็นของประเทศใด?",
+                options: ["มาเลเซีย", "สิงคโปร์", "อินโดนีเซีย", "บรูไน"],
+                correct: 1
+            },
+            {
+                flag: "MY",
+                question: "ธงชาตินี้เป็นของประเทศใด?",
+                options: ["ไทย", "มาเลเซีย", "ฟิลิปปินส์", "เวียดนาม"],
+                correct: 1
+            },
+            {
+                flag: "ID",
+                question: "ธงชาตินี้เป็นของประเทศใด?",
+                options: ["อินโดนีเซีย", "สิงคโปร์", "ไทย", "มาเลเซีย"],
+                correct: 0
+            },
+            {
+                flag: "PH",
+                question: "ธงชาตินี้เป็นของประเทศใด?",
+                options: ["เวียดนาม", "ลาว", "ฟิลิปปินส์", "กัมพูชา"],
+                correct: 2
+            },
+            {
+                flag: "VN",
+                question: "ธงชาตินี้เป็นของประเทศใด?",
+                options: ["จีน", "เวียดนาม", "ลาว", "เมียนมาร์"],
+                correct: 1
+            },
+            {
+                flag: "LA",
+                question: "ธงชาตินี้เป็นของประเทศใด?",
+                options: ["ไทย", "เวียดนาม", "ลาว", "กัมพูชา"],
+                correct: 2
+            },
+            {
+                flag: "KH",
+                question: "ธงชาตินี้เป็นของประเทศใด?",
+                options: ["กัมพูชา", "ลาว", "เมียนมาร์", "ไทย"],
+                correct: 0
+            },
+            {
+                flag: "MM",
+                question: "ธงชาตินี้เป็นของประเทศใด?",
+                options: ["บังกลาเทศ", "เมียนมาร์", "อินเดีย", "ลาว"],
+                correct: 1
+            },
+            {
+                flag: "BN",
+                question: "ธงชาตินี้เป็นของประเทศใด?",
+                options: ["มาเลเซีย", "สิงคโปร์", "บรูไน", "อินโดนีเซีย"],
+                correct: 2
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        let startTime = null;
+        let gameTimer = null;
+        let currentView = 'game'; // 'game' or 'leaderboard'
+        let shuffledQuestions = [];
+        let currentQuestionData = null;
+
+        // Timer functions
+        function startTimer() {
+            startTime = Date.now();
+            gameTimer = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            if (startTime) {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('timer').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function stopTimer() {
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+        }
+
+        function getElapsedTime() {
+            if (startTime) {
+                return Math.floor((Date.now() - startTime) / 1000);
+            }
+            return 0;
+        }
+
+        // Leaderboard functions
+        function saveScore(playerName, score, timeInSeconds) {
+            let leaderboard = JSON.parse(localStorage.getItem('aseanGameLeaderboard') || '[]');
+            
+            const newEntry = {
+                name: playerName,
+                score: score,
+                time: timeInSeconds,
+                date: new Date().toLocaleDateString('th-TH')
+            };
+            
+            leaderboard.push(newEntry);
+            
+            // Sort by score (descending), then by time (ascending)
+            leaderboard.sort((a, b) => {
+                if (b.score !== a.score) {
+                    return b.score - a.score;
+                }
+                return a.time - b.time;
+            });
+            
+            // Keep only top 10
+            leaderboard = leaderboard.slice(0, 10);
+            
+            localStorage.setItem('aseanGameLeaderboard', JSON.stringify(leaderboard));
+            displayLeaderboard();
+        }
+
+        function displayLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('aseanGameLeaderboard') || '[]');
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '';
+
+            if (leaderboard.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">ยังไม่มีข้อมูลอันดับ</td></tr>';
+                return;
+            }
+
+            leaderboard.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                
+                const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+                const minutes = Math.floor(entry.time / 60);
+                const seconds = entry.time % 60;
+                const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                row.innerHTML = `
+                    <td class="py-3 px-4 text-center font-bold">${rankEmoji}</td>
+                    <td class="py-3 px-4 font-medium">${entry.name}</td>
+                    <td class="py-3 px-4 text-center font-bold text-blue-600">${entry.score}</td>
+                    <td class="py-3 px-4 text-center text-gray-600">${timeString}</td>
+                    <td class="py-3 px-4 text-center text-gray-500 text-sm">${entry.date}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function clearLeaderboard() {
+            if (confirm('คุณแน่ใจหรือไม่ที่จะล้างข้อมูลอันดับทั้งหมด?')) {
+                localStorage.removeItem('aseanGameLeaderboard');
+                displayLeaderboard();
+            }
+        }
+
+        // Shuffle functions
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function prepareQuestions() {
+            // Shuffle questions
+            shuffledQuestions = shuffleArray(questions);
+            
+            // For each question, shuffle the options and track correct answer
+            shuffledQuestions = shuffledQuestions.map(question => {
+                const correctAnswer = question.options[question.correct];
+                const shuffledOptions = shuffleArray(question.options);
+                const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+                
+                return {
+                    ...question,
+                    options: shuffledOptions,
+                    correct: newCorrectIndex
+                };
+            });
+        }
+
+        // View management
+        function showGameView() {
+            currentView = 'game';
+            document.getElementById('gameCard').classList.remove('hidden');
+            document.getElementById('resultsCard').classList.add('hidden');
+            document.getElementById('leaderboardCard').classList.add('hidden');
+            document.getElementById('gameStats').classList.remove('hidden');
+            
+            // Update tab buttons
+            document.getElementById('gameTabBtn').className = 'bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-3 px-3 rounded-xl transition-all duration-200 border-2 border-white/50 text-2xl';
+            document.getElementById('leaderboardTabBtn').className = 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-semibold py-3 px-3 rounded-xl transition-all duration-200 border-2 border-white/30 text-2xl';
+        }
+
+        function showLeaderboardView() {
+            currentView = 'leaderboard';
+            document.getElementById('gameCard').classList.add('hidden');
+            document.getElementById('resultsCard').classList.add('hidden');
+            document.getElementById('leaderboardCard').classList.remove('hidden');
+            document.getElementById('gameStats').classList.add('hidden');
+            
+            // Update tab buttons
+            document.getElementById('gameTabBtn').className = 'bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-semibold py-3 px-3 rounded-xl transition-all duration-200 border-2 border-white/30 text-2xl';
+            document.getElementById('leaderboardTabBtn').className = 'bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-3 px-3 rounded-xl transition-all duration-200 border-2 border-white/50 text-2xl';
+            
+            displayLeaderboard();
+        }
+
+        function displayQuestion() {
+            currentQuestionData = shuffledQuestions[currentQuestion];
+            document.getElementById('flagDisplay').innerHTML = flagSVGs[currentQuestionData.flag];
+            document.getElementById('questionText').textContent = currentQuestionData.question;
+            document.getElementById('questionNumber').textContent = currentQuestion + 1;
+
+            const answersContainer = document.getElementById('answersContainer');
+            answersContainer.innerHTML = '';
+
+            currentQuestionData.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'bg-gray-100 hover:bg-blue-100 border-2 border-gray-200 hover:border-blue-300 text-gray-800 font-medium py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 text-lg';
+                button.textContent = option;
+                button.onclick = () => selectAnswer(index, button);
+                answersContainer.appendChild(button);
+            });
+
+            document.getElementById('nextButton').disabled = true;
+            selectedAnswer = null;
+            
+            // Start timer on first question
+            if (currentQuestion === 0 && !startTime) {
+                startTimer();
+            }
+        }
+
+        function selectAnswer(answerIndex, buttonElement) {
+            // Remove previous selections
+            document.querySelectorAll('#answersContainer button').forEach(btn => {
+                btn.className = 'bg-gray-100 hover:bg-blue-100 border-2 border-gray-200 hover:border-blue-300 text-gray-800 font-medium py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 text-lg';
+            });
+
+            selectedAnswer = answerIndex;
+
+            if (answerIndex === currentQuestionData.correct) {
+                buttonElement.className = 'bg-green-500 border-2 border-green-600 text-white font-medium py-4 px-6 rounded-xl text-lg correct-answer';
+                score += 10;
+                document.getElementById('score').textContent = score;
+            } else {
+                buttonElement.className = 'bg-red-500 border-2 border-red-600 text-white font-medium py-4 px-6 rounded-xl text-lg';
+                // Show correct answer
+                document.querySelectorAll('#answersContainer button')[currentQuestionData.correct].className = 'bg-green-500 border-2 border-green-600 text-white font-medium py-4 px-6 rounded-xl text-lg correct-answer';
+            }
+
+            // Disable all buttons
+            document.querySelectorAll('#answersContainer button').forEach(btn => {
+                btn.disabled = true;
+                btn.style.pointerEvents = 'none';
+            });
+
+            document.getElementById('nextButton').disabled = false;
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < shuffledQuestions.length) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            stopTimer();
+            const elapsedTime = getElapsedTime();
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            document.getElementById('gameCard').classList.add('hidden');
+            document.getElementById('resultsCard').classList.remove('hidden');
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalTime').textContent = timeString;
+
+            let message = '';
+            if (score >= 80) {
+                message = '🌟 ยอดเยี่ยม! คุณเป็นผู้เชี่ยวชาญด้านอาเซียนจริงๆ!';
+            } else if (score >= 60) {
+                message = '👍 ดีมาก! คุณมีความรู้เกี่ยวกับอาเซียนค่อนข้างดี';
+            } else if (score >= 40) {
+                message = '😊 ไม่เลว! ลองศึกษาเพิ่มเติมเกี่ยวกับอาเซียนดูนะ';
+            } else {
+                message = '💪 ไม่เป็นไร! ลองเล่นอีกครั้งเพื่อเพิ่มความรู้';
+            }
+            document.getElementById('resultMessage').textContent = message;
+        }
+
+        function resetGame() {
+            currentQuestion = 0;
+            score = 0;
+            selectedAnswer = null;
+            startTime = null;
+            stopTimer();
+            
+            document.getElementById('score').textContent = '0';
+            document.getElementById('timer').textContent = '00:00';
+            document.getElementById('playerNameInput').value = '';
+            
+            // Prepare new shuffled questions
+            prepareQuestions();
+            
+            showGameView();
+            displayQuestion();
+        }
+
+        // Event listeners
+        document.getElementById('nextButton').addEventListener('click', nextQuestion);
+        document.getElementById('playAgainButton').addEventListener('click', resetGame);
+        document.getElementById('gameTabBtn').addEventListener('click', function() {
+            resetGame();
+        });
+        document.getElementById('leaderboardTabBtn').addEventListener('click', showLeaderboardView);
+        document.getElementById('clearLeaderboardBtn').addEventListener('click', clearLeaderboard);
+        document.getElementById('viewLeaderboardBtn').addEventListener('click', showLeaderboardView);
+        
+        document.getElementById('saveScoreBtn').addEventListener('click', function() {
+            const playerName = document.getElementById('playerNameInput').value.trim();
+            if (playerName) {
+                saveScore(playerName, score, getElapsedTime());
+                document.getElementById('nameInputSection').innerHTML = '<p class="text-green-600 font-semibold">✅ บันทึกคะแนนเรียบร้อยแล้ว!</p>';
+            } else {
+                alert('กรุณากรอกชื่อของคุณ');
+            }
+        });
+        
+        // Allow Enter key to save score
+        document.getElementById('playerNameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('saveScoreBtn').click();
+            }
+        });
+
+        // Initialize game
+        prepareQuestions();
+        displayQuestion();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9709661b871b10e2',t:'MTc1NTQzNjA5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
